@@ -192,7 +192,68 @@ curl -s http://localhost:8088/ws/v1/cluster/info | grep -o '"haState":"[^"]*"'
 - Historical data retention
 - Live event logging
 
-### 6. Advanced Features Demo (5 minutes)
+### 6. Spark HA Resilience Demo (5 minutes)
+
+**Talking Points:**
+- "Now let's demonstrate HA resilience with a running Spark application"
+- "This shows how jobs survive failovers with zero data loss"
+
+**Demo Actions:**
+
+#### Start Spark HA Demo:
+1. **Open terminal** in Spark container:
+   ```bash
+   # Connect to Spark container
+   docker exec -it active-nn bash
+   cd /opt/spark/sparkcodes
+   ```
+
+2. **Run the demo script**:
+   ```bash
+   ./run_ha_demo.sh
+   ```
+
+3. **Show job startup**:
+   - Point out Spark application appearing in YARN UI
+   - Note the application ID and status
+   - Explain the 5-minute runtime design
+
+#### Phase 1 - NameNode Failover (2 minutes):
+1. **Wait for "Phase 1" message** in Spark output
+2. **Navigate to HA Controls** in dashboard
+3. **Trigger NameNode failover** while job is processing sales data
+4. **Monitor the process**:
+   - Show failover progress in dashboard
+   - Point out job continues running
+   - Check YARN application status remains "RUNNING"
+5. **Verify job survival**:
+   - Return to terminal to see continued progress
+   - Job processes data despite NameNode change
+
+#### Phase 2 - ResourceManager Failover (2 minutes):
+1. **Wait for "Phase 2" message** in Spark output
+2. **Trigger ResourceManager failover** while job processes user events
+3. **Show seamless transition**:
+   - YARN application survives RM failover
+   - Job execution continues uninterrupted
+   - No data loss or processing errors
+
+#### Phase 3 - Completion (1 minute):
+1. **Watch job complete successfully**
+2. **Show final results** in terminal output
+3. **Verify HDFS outputs**:
+   ```bash
+   hdfs dfs -ls /demo/output/
+   hdfs dfs -cat /demo/output/summary_report/part-*.csv
+   ```
+
+**Key Features to Highlight:**
+- **Zero-downtime failover**: Jobs survive infrastructure changes
+- **Data integrity**: No data loss during failovers
+- **Automatic recovery**: Services reconnect seamlessly
+- **Production readiness**: Real-world resilience demonstration
+
+### 7. Advanced Features Demo (5 minutes)
 
 **Talking Points:**
 - "Let's look at some advanced monitoring features"
@@ -234,21 +295,24 @@ curl -s http://localhost:8088/ws/v1/cluster/info | grep -o '"haState":"[^"]*"'
 2. **Real-time Monitoring**: Live updates without manual refresh
 3. **File Management**: Easy HDFS operations with web interface
 4. **Job Tracking**: Complete YARN application monitoring
-5. **User Experience**: Modern, responsive dashboard design
+5. **Spark Integration**: HA resilience for data processing workloads
+6. **User Experience**: Modern, responsive dashboard design
 
 ### Technical Highlights:
 - **Architecture**: FastAPI backend + vanilla JavaScript frontend
 - **Real-time**: Server-Sent Events for live updates
 - **Integration**: Direct Hadoop REST API integration
+- **Spark Support**: Demonstrates application-level HA resilience
 - **Scalability**: Handles large clusters and high update frequencies
 - **Accessibility**: Works on desktop, tablet, and mobile
 
 ### Use Cases:
 - **DevOps**: Cluster monitoring and management
-- **Development**: Testing HA scenarios
+- **Development**: Testing HA scenarios with real workloads
 - **Training**: Learning Hadoop HA concepts
 - **Debugging**: Troubleshooting cluster issues
-- **Demos**: Showcasing Hadoop capabilities
+- **Production**: Validating HA setups before deployment
+- **Demos**: Showcasing Hadoop capabilities to stakeholders
 
 ## Troubleshooting During Demo
 
@@ -303,6 +367,39 @@ docker-compose up -d
 
 ---
 
-**Total Demo Time: ~45 minutes**
-**Recommended Audience: Technical stakeholders, DevOps teams, Hadoop users**
-**Prerequisites: Basic understanding of Hadoop concepts**
+**Total Demo Time: ~50 minutes**
+**Recommended Audience: Technical stakeholders, DevOps teams, Hadoop users, Data engineers**
+**Prerequisites: Basic understanding of Hadoop and Spark concepts**
+
+## Spark Demo Files Reference
+
+The simplified Spark demo includes:
+
+### Data Files:
+- `spark/sparkcodes/data/sales_data.csv` - Sample sales transactions
+- `spark/sparkcodes/data/user_events.csv` - User behavior events
+
+### Demo Scripts:
+- `spark/sparkcodes/ha_demo.py` - Standalone Python script (5-minute runtime)
+- `spark/sparkcodes/ha_demo.ipynb` - Interactive Jupyter notebook
+- `spark/sparkcodes/run_ha_demo.sh` - Quick-start bash script
+
+### Usage:
+```bash
+# Option 1: Quick automated demo
+cd spark/sparkcodes
+./run_ha_demo.sh
+
+# Option 2: Manual execution
+spark-submit --master yarn ha_demo.py
+
+# Option 3: Interactive notebook
+jupyter notebook ha_demo.ipynb
+```
+
+The demo is specifically designed to:
+- ✅ **Focus on HA features** (not complex data science)
+- ✅ **Run for exactly 5 minutes** (perfect for failover timing)
+- ✅ **Use simple, understandable data** (sales and events)
+- ✅ **Provide clear failover windows** (marked phases)
+- ✅ **Demonstrate zero data loss** (all outputs preserved)

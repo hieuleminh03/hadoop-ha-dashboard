@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hadoop HA Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-database"></i>
+                    <h1>Hadoop HA Dashboard</h1>
+                </div>
+                <div class="header-controls">
+                    <div class="cluster-health">
+                        <span class="health-label">Cluster Health:</span>
+                        <span id="cluster-health-status" class="health-status">Loading...</span>
+                        <div id="cluster-health-score" class="health-score">--</div>
+                    </div>
+                    <button id="theme-toggle" class="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="overview">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Overview
+                </button>
+                <button class="nav-tab" data-tab="ha-controls">
+                    <i class="fas fa-exchange-alt"></i>
+                    HA Controls
+                </button>
+                <button class="nav-tab" data-tab="file-manager">
+                    <i class="fas fa-folder"></i>
+                    File Manager
+                </button>
+                <button class="nav-tab" data-tab="job-monitor">
+                    <i class="fas fa-tasks"></i>
+                    Job Monitor
+                </button>
+                <button class="nav-tab" data-tab="logs">
+                    <i class="fas fa-list-alt"></i>
+                    Logs
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Overview Tab -->
+            <div id="overview-tab" class="tab-content active">
+                <div class="overview-grid">
+                    <!-- NameNode Status Card -->
+                    <div class="status-card namenode-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-server"></i> NameNode HA</h3>
+                            <div class="card-status" id="namenode-status">
+                                <span class="status-indicator"></span>
+                                <span class="status-text">Checking...</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="ha-nodes">
+                                <div class="ha-node" id="nn-active">
+                                    <div class="node-info">
+                                        <span class="node-label">Active NN</span>
+                                        <span class="node-host">active-nn:9870</span>
+                                    </div>
+                                    <div class="node-status">
+                                        <span class="status-indicator"></span>
+                                        <span class="response-time">--ms</span>
+                                    </div>
+                                </div>
+                                <div class="ha-node" id="nn-standby">
+                                    <div class="node-info">
+                                        <span class="node-label">Standby NN</span>
+                                        <span class="node-host">standby-nn:9870</span>
+                                    </div>
+                                    <div class="node-status">
+                                        <span class="status-indicator"></span>
+                                        <span class="response-time">--ms</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ResourceManager Status Card -->
+                    <div class="status-card resourcemanager-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-cogs"></i> ResourceManager HA</h3>
+                            <div class="card-status" id="resourcemanager-status">
+                                <span class="status-indicator"></span>
+                                <span class="status-text">Checking...</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="ha-nodes">
+                                <div class="ha-node" id="rm-active">
+                                    <div class="node-info">
+                                        <span class="node-label">Active RM</span>
+                                        <span class="node-host">active-rm:8088</span>
+                                    </div>
+                                    <div class="node-status">
+                                        <span class="status-indicator"></span>
+                                        <span class="response-time">--ms</span>
+                                    </div>
+                                </div>
+                                <div class="ha-node" id="rm-standby">
+                                    <div class="node-info">
+                                        <span class="node-label">Standby RM</span>
+                                        <span class="node-host">standby-rm:8088</span>
+                                    </div>
+                                    <div class="node-status">
+                                        <span class="status-indicator"></span>
+                                        <span class="response-time">--ms</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cluster Resources Card -->
+                    <div class="status-card resources-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-pie"></i> Cluster Resources</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="resource-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">Memory</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" id="memory-usage"></div>
+                                    </div>
+                                    <span class="metric-value" id="memory-text">-- / --</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">vCores</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" id="vcores-usage"></div>
+                                    </div>
+                                    <span class="metric-value" id="vcores-text">-- / --</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Active Nodes</span>
+                                    <span class="metric-value" id="active-nodes">--</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Running Apps</span>
+                                    <span class="metric-value" id="running-apps">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nodes Health Card -->
+                    <div class="status-card nodes-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-network-wired"></i> Nodes Health</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="nodes-grid">
+                                <div class="node-type">
+                                    <div class="node-type-header">
+                                        <span class="node-type-label">DataNodes</span>
+                                        <span class="node-count" id="datanode-count">-- / --</span>
+                                    </div>
+                                    <div class="node-list" id="datanode-list"></div>
+                                </div>
+                                <div class="node-type">
+                                    <div class="node-type-header">
+                                        <span class="node-type-label">NodeManagers</span>
+                                        <span class="node-count" id="nodemanager-count">-- / --</span>
+                                    </div>
+                                    <div class="node-list" id="nodemanager-list"></div>
+                                </div>
+                                <div class="node-type">
+                                    <div class="node-type-header">
+                                        <span class="node-type-label">JournalNodes</span>
+                                        <span class="node-count" id="journalnode-count">-- / --</span>
+                                    </div>
+                                    <div class="node-list" id="journalnode-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Chart -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Performance Metrics</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="performance-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Services Status -->
+                    <div class="status-card services-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tools"></i> Services Status</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="services-list">
+                                <div class="service-item" id="historyserver-service">
+                                    <span class="service-name">History Server</span>
+                                    <span class="service-status">
+                                        <span class="status-indicator"></span>
+                                        <span class="status-text">--</span>
+                                    </span>
+                                </div>
+                                <div class="service-item" id="hive-service">
+                                    <span class="service-name">Hive WebUI</span>
+                                    <span class="service-status">
+                                        <span class="status-indicator"></span>
+                                        <span class="status-text">--</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HA Controls Tab -->
+            <div id="ha-controls-tab" class="tab-content">
+                <div class="controls-grid">
+                    <!-- NameNode Failover Controls -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-exchange-alt"></i> NameNode Failover</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="current-status">
+                                <div class="status-item">
+                                    <span class="label">Active:</span>
+                                    <span id="nn-current-active">--</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="label">Standby:</span>
+                                    <span id="nn-current-standby">--</span>
+                                </div>
+                            </div>
+                            <div class="control-buttons">
+                                <button id="nn-failover-btn" class="btn btn-primary">
+                                    <i class="fas fa-exchange-alt"></i>
+                                    Trigger Failover
+                                </button>
+                                <button id="nn-force-failover-btn" class="btn btn-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Force Failover
+                                </button>
+                            </div>
+                            <div id="nn-failover-progress" class="progress-container" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="progress-text">Executing failover...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ResourceManager Failover Controls -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-exchange-alt"></i> ResourceManager Failover</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="current-status">
+                                <div class="status-item">
+                                    <span class="label">Active:</span>
+                                    <span id="rm-current-active">--</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="label">Standby:</span>
+                                    <span id="rm-current-standby">--</span>
+                                </div>
+                            </div>
+                            <div class="control-buttons">
+                                <button id="rm-failover-btn" class="btn btn-primary">
+                                    <i class="fas fa-exchange-alt"></i>
+                                    Trigger Failover
+                                </button>
+                                <button id="rm-force-failover-btn" class="btn btn-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Force Failover
+                                </button>
+                            </div>
+                            <div id="rm-failover-progress" class="progress-container" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="progress-text">Executing failover...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Failover History -->
+                    <div class="control-card full-width">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> Failover History</h3>
+                            <button id="clear-history-btn" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-trash"></i>
+                                Clear
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div id="failover-history" class="history-list">
+                                <!-- Failover history will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Manager Tab -->
+            <div id="file-manager-tab" class="tab-content">
+                <div class="file-manager-container">
+                    <!-- File Manager Header -->
+                    <div class="file-manager-header">
+                        <div class="breadcrumb">
+                            <span class="breadcrumb-label">HDFS Path:</span>
+                            <div id="breadcrumb-path" class="breadcrumb-path">/</div>
+                        </div>
+                        <div class="file-actions">
+                            <button id="upload-file-btn" class="btn btn-primary">
+                                <i class="fas fa-upload"></i>
+                                Upload File
+                            </button>
+                            <button id="download-url-btn" class="btn btn-secondary">
+                                <i class="fas fa-download"></i>
+                                Download from URL
+                            </button>
+                            <button id="refresh-files-btn" class="btn btn-secondary">
+                                <i class="fas fa-sync"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- File Browser -->
+                    <div class="file-browser">
+                        <div id="file-list" class="file-list">
+                            <!-- File list will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Upload Modal -->
+                    <div id="upload-modal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Upload File to HDFS</h3>
+                                <button class="modal-close">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="upload-area">
+                                    <input type="file" id="file-input" multiple>
+                                    <div class="upload-drop-zone">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Drag & drop files here or click to select</p>
+                                    </div>
+                                </div>
+                                <div class="upload-path">
+                                    <label for="upload-path-input">Upload to:</label>
+                                    <input type="text" id="upload-path-input" value="/">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="upload-confirm-btn" class="btn btn-primary">Upload</button>
+                                <button class="btn btn-secondary modal-close">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Download URL Modal -->
+                    <div id="download-url-modal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Download from URL to HDFS</h3>
+                                <button class="modal-close">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label for="download-url-input">Source URL:</label>
+                                    <input type="url" id="download-url-input" placeholder="https://example.com/file.txt">
+                                </div>
+                                <div class="form-group">
+                                    <label for="download-path-input">HDFS Destination:</label>
+                                    <input type="text" id="download-path-input" value="/">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="download-confirm-btn" class="btn btn-primary">Download</button>
+                                <button class="btn btn-secondary modal-close">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Monitor Tab -->
+            <div id="job-monitor-tab" class="tab-content">
+                <div class="job-monitor-container">
+                    <div class="job-monitor-header">
+                        <h3><i class="fas fa-tasks"></i> YARN Applications</h3>
+                        <button id="refresh-jobs-btn" class="btn btn-secondary">
+                            <i class="fas fa-sync"></i>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="job-list">
+                        <div id="applications-table" class="applications-table">
+                            <!-- Applications table will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logs-tab" class="tab-content">
+                <div class="logs-container">
+                    <div class="logs-header">
+                        <h3><i class="fas fa-list-alt"></i> Cluster Logs</h3>
+                        <div class="logs-controls">
+                            <button id="clear-logs-btn" class="btn btn-secondary">
+                                <i class="fas fa-trash"></i>
+                                Clear
+                            </button>
+                            <button id="auto-scroll-toggle" class="btn btn-secondary active">
+                                <i class="fas fa-arrow-down"></i>
+                                Auto Scroll
+                            </button>
+                        </div>
+                    </div>
+                    <div class="logs-content">
+                        <div id="logs-list" class="logs-list">
+                            <!-- Logs will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading...</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/charts.js"></script>
+    <script src="/static/js/file-manager.js"></script>
+</body>
+</html>

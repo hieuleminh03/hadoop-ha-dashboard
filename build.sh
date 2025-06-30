@@ -20,9 +20,4 @@ cd ./JournalNode3
 docker image build -t demo/journalnode3 . --no-cache
 cd ..
 
-cd ./dashboard
-docker image build -t demo/hadoop-dashboard . --no-cache
-cd ..
-
 echo "All images built successfully!"
-echo "Dashboard will be available at: http://localhost:3000"

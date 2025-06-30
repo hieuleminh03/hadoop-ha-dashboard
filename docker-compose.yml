@@ -131,36 +131,6 @@ services:
         hostname: worker3
         command: bash -c "service ssh restart && sleep infinity"
     
-    Dashboard:
-        container_name: hadoop-dashboard
-        build: ./dashboard
-        ports:
-            - 3000:3000
-        networks:
-            - Hadoop_Cluster
-        hostname: hadoop-dashboard
-        environment:
-            - HADOOP_NAMENODE_ACTIVE=active-nn:9870
-            - HADOOP_NAMENODE_STANDBY=standby-nn:9870
-            - HADOOP_RM_ACTIVE=active-rm:8088
-            - HADOOP_RM_STANDBY=standby-rm:8088
-            - HADOOP_HISTORYSERVER=historyserver:19888
-            - HADOOP_HIVE=active-nn:10002
-        depends_on:
-            - Active-NN
-            - Standby-NN
-            - Active-RM
-            - Standby-RM
-            - HistorySever
-            - JournalNode1
-            - JournalNode2
-            - JournalNode3
-            - Worker1
-            - Worker2
-            - Worker3
-        restart: unless-stopped
-       
-    
 networks:
     Hadoop_Cluster:
         driver: bridge

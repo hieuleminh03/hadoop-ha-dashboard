@@ -1,22 +1,22 @@
 #!/bin/bash
 
-cd ./BaseHadoop
+cd ./base
 docker image build -t demo/hadoopha . --no-cache
 cd ..
 
-cd ./Workers
+cd ./workers
 docker image build -t demo/workers . --no-cache
 cd ..
 
-cd ./JournalNode1
+cd ./journal_1
 docker image build -t demo/journalnode1 . --no-cache
 cd ..
 
-cd ./JournalNode2
+cd ./journal_2
 docker image build -t demo/journalnode2 . --no-cache
 cd ..
 
-cd ./JournalNode3
+cd ./journal_3
 docker image build -t demo/journalnode3 . --no-cache
 cd ..
 
